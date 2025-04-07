@@ -3,7 +3,8 @@ import pandas as pd
 from pathlib import Path
 
 # Set default path to folder with the Laryngozele, Normal, and Vox Senilis folders
-data_path = Path("./data/raw/patient-vocal-dataset")
+root = Path().resolve()
+data_path = root / "data/raw/patient-vocal-dataset"
 
 # Find the paths to each of the Laryngozele, Normal, and Vox Senilis folders and store their names to use as labels
 disease_paths = [x for x in data_path.iterdir() if x.is_dir()]
@@ -46,4 +47,4 @@ df_voice_data = pd.DataFrame({"id":pd.Series(range(len(recoding_labels))),
               "is_egg":pd.Series(is_egg)})
 
 # write to .csv file
-df_voice_data.to_csv("recording_data.csv", index=False)
+df_voice_data.to_csv(root / "data/interim/recording_data.csv", index=False)
