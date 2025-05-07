@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from feature_extraction import compute_mean_mfcc
+from utils.recording_name_utils import get_patient_number, get_sound_type, get_is_egg
+from utils.fe_utils import compute_mean_mfcc
 
-root = Path("..").resolve()
+root = Path("../..").resolve()
 data_path = root / "data/raw/patient-vocal-dataset"
 n_mfcc = 10
 
@@ -15,6 +16,7 @@ sound_types = []
 is_eggs = []
 mfccs = []
 
+# Extract patient information and calculate mfcc
 for disease_folder in data_path.iterdir():
     if not disease_folder.is_dir():
         continue
@@ -23,14 +25,12 @@ for disease_folder in data_path.iterdir():
             continue
         recording_names.append(file.name)
         disease_labels.append(disease_folder.name)
-        file_stem_parts = file.stem.split("-")
-        patient_numbers.append(file_stem_parts[0])
-        sound_types.append(file_stem_parts[1])
-        is_egg = len(file_stem_parts) > 2 and file_stem_parts[2] == "egg"
-        is_eggs.append(is_egg)
+        patient_numbers.append(get_patient_number(file))
+        sound_types.append(get_sound_type(file))
+        is_eggs.append(get_is_egg(file))
         mfccs.append(compute_mean_mfcc(file_path=file, n_mfcc=n_mfcc))
 
-# compile everything in a pandas data frame
+# Compile everything in a pandas dataframe
 mfcc_matrix = np.array(mfccs)
 df_voice_data = pd.DataFrame({
             "id": range(len(recording_names)),
@@ -50,6 +50,6 @@ df_voice_data = pd.DataFrame({
             "mfcc_9": mfcc_matrix[:, 8],
             "mfcc_10": mfcc_matrix[:, 9]})
 
-# write to .csv file
-df_voice_data.to_csv(root / "data/interim/recording_data2.csv", index=False)
+# Write to .csv file
+df_voice_data.to_csv(root / "data/interim/10mfcc.csv", index=False)
 
