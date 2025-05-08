@@ -3,8 +3,11 @@ import pandas as pd
 from pathlib import Path
 
 # Set default path to folder with the Laryngozele, Normal, and Vox Senilis folders
-root = Path().resolve()
+root = Path().resolve().parent
 data_path = root / "data/raw/patient-vocal-dataset"
+
+
+
 
 # Find the paths to each of the Laryngozele, Normal, and Vox Senilis folders and store their names to use as labels
 disease_paths = [x for x in data_path.iterdir() if x.is_dir()]
