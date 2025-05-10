@@ -7,4 +7,6 @@ dependencies:
   - pandas=2.2.3
   - python=3.12.2
   - scikit-learn=1.6.1
+  - pysoundfile=0.13.1
+  - libsndfile=1.2.2
 

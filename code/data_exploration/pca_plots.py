@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from sklearn.decomposition import PCA
 
 root = Path("../..").resolve()
-data_path = root / "data/interim/10mfcc.csv"
+data_path = root / "data/processed/10mfcc_mean.csv"
 
 voice_df = pd.read_csv(data_path, index_col=0)
 mfcc_df = voice_df.drop(columns=["patient_number", "disease_label", "file_name", "sound_type", "is_egg"])
