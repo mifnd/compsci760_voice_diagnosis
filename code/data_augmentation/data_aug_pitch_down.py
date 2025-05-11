@@ -4,7 +4,7 @@ import librosa
 from pathlib import Path
 from utils.recording_name_utils_copy import get_is_egg
 
-# Divide octave in 24 steps and set pitch shift to 1 step up.
+# Divide octave in 24 steps and set pitch shift to 1 step down.
 bins_per_octave = 24
 n_steps = -1
 
