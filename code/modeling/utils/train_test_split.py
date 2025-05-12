@@ -9,7 +9,7 @@ from sklearn import model_selection
 #   file_path: takes the file path relative to compsci760_voice_diagnosis to a .csv file with a column named patient_number
 # function returns two pandas data frames with train / test data (similar to the original dataframe)
 def train_test_split(file_path = ""):
-    root = Path().resolve().parents[2]
+    root = Path().resolve().parents[1]
     pn_train = np.loadtxt(root/"data/train.txt", dtype=int)
     pn_test = np.loadtxt(root/"data/test.txt", dtype=int)
     all_data = pd.read_csv(root/file_path, index_col="id")
