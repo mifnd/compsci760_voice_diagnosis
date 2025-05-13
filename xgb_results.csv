@@ -1,0 +1,10 @@
+Experiment	Accurancy	Precision (macro)	Recall (macro)	F1 Score (macro)	ROC AUC (ovr)	Notes
+10mfcc (mean)	0.7429	0.7625	0.6667	0.6698	0.8693	
+40mfcc (mean)	0.6857	0.4571	0.5714	0.5079	0.7605	received warning about accuracy score
+10mfcc (median)	0.7571	0.7462	0.6905	0.6966	0.8938	
+10mfcc (mean) + pitch up	0.8286	0.8089	0.7857	0.7934	0.8991	
+10mfcc (mean) + pitch down	0.7857	0.8485	0.7024	0.7055	0.8647	
+10mfcc (mean) + noise	0.7429	0.7137	0.6786	0.6826	0.8753	
+10mfcc (mean) + speed up	0.7857	0.7665	0.7381	0.7459	0.8873	
+10mfcc (mean) + pitch up + noise	0.8	0.7775	0.7857	0.7797	0.891	
+10mfcc (mean) + pitch up + pitch down + noise + speed up	0.7714	0.7659	0.7024	0.7101	0.8878	
