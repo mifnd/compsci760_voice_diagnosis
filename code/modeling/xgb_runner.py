@@ -93,17 +93,22 @@ def run_xgb_pipeline(real_paths, aug_paths):
 # Parameters:
 #   y_true: true labels
 #   y_proba: predicted probabilities for each class
-def optimize_thresholds(y_true, y_proba):
+def optimize_thresholds(y_true, y_proba, metric='f1', step=0.01):
     best_thresholds = {}
     n_classes = y_proba.shape[1]
+    thresholds = np.arange(0.0, 1.0 + step, step)
     for idx in range(n_classes):
-        precision, recall, thresh = precision_recall_curve(
-            (y_true == idx).astype(int), y_proba[:, idx]
-        )
-        # compute F1 value for each threshold
-        f1_scores = 2 * precision * recall / (precision + recall + 1e-8)
-        # select threshold with largest F1, the default is 0.5 if there is no thresholds
-        best_thresholds[idx] = thresh[np.argmax(f1_scores)] if thresh.size else 0.5
+        ys = (y_true == idx).astype(int)
+        ps = y_proba[:, idx]
+        best_thr = 0.5
+        best_score = -np.inf
+        for t in thresholds:
+            preds = (ps >= t).astype(int)
+            score = f1_score(ys, preds) if metric == 'f1' else recall_score(ys, preds)
+            if score > best_score:
+                best_score = score
+                best_thr = t
+        best_thresholds[idx] = best_thr
     return best_thresholds
 
 
