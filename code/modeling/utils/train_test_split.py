@@ -4,14 +4,28 @@ import pandas as pd
 import numpy as np
 from sklearn import model_selection
 
+# Function to find the path to the root folder of the repository
+def find_root_path():
+    current = Path().resolve()
+    if str(current).split("\\")[-1] == "compsci760_voice_diagnosis":
+        return(current)
+    else:
+        for i in range(len(current.parents)):
+            path_end = str(current.parents[i]).split("\\")[-1]
+            if path_end == "compsci760_voice_diagnosis":
+                return(current.parents[i])
+    raise Exception("Function not called from within the correct repsoitory folder")
+
 # Function to perform train / test split
 # Parameters:
 #   file_path: takes the file path relative to compsci760_voice_diagnosis to a .csv file with a column named patient_number
 # function returns two pandas data frames with train / test data (similar to the original dataframe)
-def train_test_split(file_path = ""):
-    root = Path().resolve().parents[1]
-    pn_train = np.loadtxt(root/"data/train.txt", dtype=int)
-    pn_test = np.loadtxt(root/"data/test.txt", dtype=int)
+#   train_file / test_file: file path relative to dipository root to text files that hold the patient numbers for the 
+# training / testing groups respectively (defaults to the original split)
+def train_test_split(file_path = "", train_file = "data/train1.txt", test_file = "data/test1.txt"):
+    root = find_root_path()
+    pn_train = np.loadtxt(root/train_file, dtype=int)
+    pn_test = np.loadtxt(root/test_file, dtype=int)
     all_data = pd.read_csv(root/file_path, index_col="id")
     train = all_data[all_data["patient_number"] .isin(pn_train)]
     test = all_data[all_data["patient_number"].isin(pn_test)]

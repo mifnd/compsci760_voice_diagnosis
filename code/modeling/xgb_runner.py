@@ -2,11 +2,12 @@ from itertools import product
 import numpy as np
 import pandas as pd
 import xgboost as xgb
+from datetime import datetime
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, precision_recall_curve
 from sklearn.model_selection import GroupKFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import compute_class_weight
-from utils.train_test_split import train_test_split, cross_val_by_pnum, encode_y
+from utils.train_test_split import train_test_split, cross_val_by_pnum, find_root_path
 
 
 def run_xgb_pipeline(real_paths, aug_paths):
@@ -19,8 +20,8 @@ def run_xgb_pipeline(real_paths, aug_paths):
     train_aug_list = [train_test_split(p)[0] for p in aug_paths]
 
     # Combine the real and augmented training data
-    combined_train = pd.concat(train_real_list + train_aug_list, ignore_index=True)
-    combined_test = pd.concat(test_real_list, ignore_index=True)
+    combined_train = pd.concat(train_real_list + train_aug_list)
+    combined_test = pd.concat(test_real_list)
 
     # Make the label column categorical
     y_col = "disease_label"
@@ -87,6 +88,25 @@ def run_xgb_pipeline(real_paths, aug_paths):
     print(f"Recall (macro):     {recall_score(y_test_enc, y_pred_opt, average='macro'):.4f}")
     print(f"F1 Score (macro):   {f1_score(y_test_enc, y_pred_opt, average='macro'):.4f}")
     print(f"ROC AUC (ovr):      {roc_auc_score(y_test_enc, y_proba, multi_class='ovr'):.4f}")
+
+    # Record evaluation scores in text file
+    results_path = find_root_path()/"results"/f"results_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.txt"
+    results_txt = open(results_path, "w")
+    results_txt.write("Accuracy,Precision(macro),Recall(macro),F1_Score(macro),ROC_AUC(ovr)\n")
+    results_txt.write((f"{accuracy_score(y_test_enc, y_pred_opt)},"
+                      f"{precision_score(y_test_enc, y_pred_opt, average='macro')},"
+                      f"{recall_score(y_test_enc, y_pred_opt, average='macro')},"
+                      f"{f1_score(y_test_enc, y_pred_opt, average='macro')},"
+                      f"{roc_auc_score(y_test_enc, y_proba, multi_class='ovr')}"))
+    results_txt.close()
+
+    # Record predictions in csv file
+    pd.DataFrame(data = {"id":combined_test.index, 
+                         "patient_number":combined_test["patient_number"],
+                         "disease_label":combined_test["disease_label"],
+                         "sound_type":combined_test["sound_type"],
+                         "y_real":y_test_enc,
+                         "y_pred":y_pred_opt}).to_csv(find_root_path()/"results"/f"results_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.csv", index = False)
 
 
 # Function to optimize thresholds for each class
