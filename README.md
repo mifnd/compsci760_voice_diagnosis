@@ -9,4 +9,9 @@ set up an environment with all the correct packages, cd into the folder with the
 
 `conda env create --name <YourEnvironmentName> --file environment.yml`
 
-You should now be ready to run the project.
+You should now be ready to run the project. 
+
+If the `environment.yml` gets updated with new packages, you can use the 
+following command to update your conda-environment:
+
+`conda env update --file environment.yml --prune`

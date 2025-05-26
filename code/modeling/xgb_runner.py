@@ -90,7 +90,7 @@ def run_xgb_pipeline(real_paths, aug_paths):
     print(f"ROC AUC (ovr):      {roc_auc_score(y_test_enc, y_proba, multi_class='ovr'):.4f}")
 
     # Record evaluation scores in text file
-    results_path = find_root_path()/"results"/f"results_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.txt"
+    results_path = find_root_path()/"results"/f"results_{datetime.now().strftime('%Y-%m-%d_%Hh%Mm%Ss')}.txt"
     results_txt = open(results_path, "w")
     results_txt.write("Accuracy,Precision(macro),Recall(macro),F1_Score(macro),ROC_AUC(ovr)\n")
     results_txt.write((f"{accuracy_score(y_test_enc, y_pred_opt)},"
@@ -106,7 +106,7 @@ def run_xgb_pipeline(real_paths, aug_paths):
                          "disease_label":combined_test["disease_label"],
                          "sound_type":combined_test["sound_type"],
                          "y_real":y_test_enc,
-                         "y_pred":y_pred_opt}).to_csv(find_root_path()/"results"/f"results_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.csv", index = False)
+                         "y_pred":y_pred_opt}).to_csv(find_root_path()/"results"/f"results_{datetime.now().strftime('%Y-%m-%d_%Hh%Mm%Ss')}.csv", index=False)
 
 
 # Function to optimize thresholds for each class
