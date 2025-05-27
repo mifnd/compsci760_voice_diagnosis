@@ -36,12 +36,14 @@ def run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list=None, script_na
     n_classes = len(le.classes_)
 
     # Weights for each class
-    class_weights = compute_class_weight(
+    train_classes = np.unique(y_train_enc)
+    class_weights_arr = compute_class_weight(
         class_weight='balanced',
-        classes=np.unique(y_train_enc),
+        classes=train_classes,
         y=y_train_enc
     )
-    sample_weights = np.array([class_weights[i] for i in y_train_enc])
+    class_weights_dict = dict(zip(train_classes, class_weights_arr))
+    sample_weights = np.array([class_weights_dict[i] for i in y_train_enc])
 
     # Hyperparameter tuning using GroupKFold
     # Hyperparameter grid
