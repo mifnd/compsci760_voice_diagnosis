@@ -3,7 +3,7 @@ from xgb_runner import run_xgb_pipeline
 
 if __name__ == "__main__":
     script_name = Path(__file__).stem
-    main_csv = "data/processed/10mfcc_mean.csv"
+    main_csv = "data/processed/10mfcc_median.csv"
     train_txt = "data/train1.txt"
     test_txt = "data/test1.txt"
     aug_csv_list = []
