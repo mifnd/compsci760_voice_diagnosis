@@ -259,4 +259,5 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 do_not_merge.ipynb
 
-results
+results_*.csv
+results_*.txt

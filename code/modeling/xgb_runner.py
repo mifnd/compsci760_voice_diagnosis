@@ -4,14 +4,14 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from datetime import datetime
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, precision_recall_curve
 from sklearn.model_selection import GroupKFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import compute_class_weight
 from utils.train_test_split import train_test_split, find_root_path
 
 
-def run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list=None):
+def run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list=None, script_name=None):
     train_df, test_df = train_test_split(
         file_path=main_csv,
         train_file=train_txt,
@@ -92,28 +92,24 @@ def run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list=None):
     print(f"F1 Score (macro):   {f1_score(y_test_enc, y_pred_opt, average='macro'):.4f}")
     print(f"ROC AUC (ovr):      {roc_auc_score(y_test_enc, y_proba, multi_class='ovr'):.4f}")
 
-    # Record evaluation scores in text file
-    results_dir = os.path.join(os.path.dirname(main_csv), "results")
-    os.makedirs(results_dir, exist_ok=True)
-    nowstr = datetime.now().strftime('%Y-%m-%d_%Hh%Mm%Ss')
-    results_path = os.path.join(results_dir, f"results_{nowstr}.txt")
-    with open(results_path, "w") as results_txt:
-        results_txt.write("Accuracy,Precision(macro),Recall(macro),F1_Score(macro),ROC_AUC(ovr)\n")
-        results_txt.write((f"{accuracy_score(y_test_enc, y_pred_opt)},"
-                           f"{precision_score(y_test_enc, y_pred_opt, average='macro')},"
-                           f"{recall_score(y_test_enc, y_pred_opt, average='macro')},"
-                           f"{f1_score(y_test_enc, y_pred_opt, average='macro')},"
-                           f"{roc_auc_score(y_test_enc, y_proba, multi_class='ovr')}"))
+    results_path = find_root_path() / "results" / f"results_{script_name}_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.txt"
+    results_txt = open(results_path, "w")
+    results_txt.write("Accuracy,Precision(macro),Recall(macro),F1_Score(macro),ROC_AUC(ovr)\n")
+    results_txt.write((f"{accuracy_score(y_test_enc, y_pred_opt)},"
+                       f"{precision_score(y_test_enc, y_pred_opt, average='macro')},"
+                       f"{recall_score(y_test_enc, y_pred_opt, average='macro')},"
+                       f"{f1_score(y_test_enc, y_pred_opt, average='macro')},"
+                       f"{roc_auc_score(y_test_enc, y_proba, multi_class='ovr')}"))
+    results_txt.close()
 
-    pred_csv_path = os.path.join(results_dir, f"results_{nowstr}.csv")
-    pd.DataFrame({
-        "id": test_df.index,
-        "patient_number": test_df["patient_number"],
-        "disease_label": test_df["disease_label"],
-        "sound_type": test_df["sound_type"],
-        "y_real": y_test_enc,
-        "y_pred": y_pred_opt
-    }).to_csv(pred_csv_path, index=False)
+    # Record predictions in csv file
+    pd.DataFrame(data={"id": test_df.index,
+                       "patient_number": test_df["patient_number"],
+                       "disease_label": test_df["disease_label"],
+                       "sound_type": test_df["sound_type"],
+                       "y_real": y_test_enc,
+                       "y_pred": y_pred_opt}).to_csv(
+        find_root_path() / "results" / f"results_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.csv", index=False)
 
 
 # Function to optimize thresholds for each class
