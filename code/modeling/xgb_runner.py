@@ -84,6 +84,9 @@ def run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list=None, script_na
             y_pred_opt.append(np.argmax(probs))
     y_pred_opt = np.array(y_pred_opt)
 
+    # Datetime now:
+    datatime_now = datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")
+
     # Evaluate the model
     print("\n=== Test Set Evaluation ===")
     print(f"Accuracy:           {accuracy_score(y_test_enc, y_pred_opt):.4f}")
@@ -92,7 +95,7 @@ def run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list=None, script_na
     print(f"F1 Score (macro):   {f1_score(y_test_enc, y_pred_opt, average='macro'):.4f}")
     print(f"ROC AUC (ovr):      {roc_auc_score(y_test_enc, y_proba, multi_class='ovr'):.4f}")
 
-    results_path = find_root_path() / "results" / f"predictions_{script_name}_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.txt"
+    results_path = find_root_path() / "results" / f"results_{script_name}_{datatime_now}.txt"
     results_txt = open(results_path, "w")
     results_txt.write("Accuracy,Precision(macro),Recall(macro),F1_Score(macro),ROC_AUC(ovr)\n")
     results_txt.write((f"{accuracy_score(y_test_enc, y_pred_opt)},"
@@ -109,7 +112,7 @@ def run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list=None, script_na
                        "sound_type": test_df["sound_type"],
                        "y_real": y_test_enc,
                        "y_pred": y_pred_opt}).to_csv(
-        find_root_path() / "results" / f"predictions_{script_name}_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.csv", index=False)
+        find_root_path() / "results" / f"predictions_{script_name}_{datatime_now}.csv", index=False)
 
 
 # Function to optimize thresholds for each class
