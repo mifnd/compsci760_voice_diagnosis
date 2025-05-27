@@ -1,13 +1,15 @@
+from pathlib import Path
 from xgb_runner import run_xgb_pipeline
 
 if __name__ == "__main__":
-    # real data paths
-    real_paths = ["data/processed/10mfcc_mean.csv"]
-    # augmented data paths
-    aug_paths = [
+    script_name = Path(__file__).stem
+    main_csv = "data/processed/10mfcc_mean.csv"
+    train_txt = "data/train1.txt"
+    test_txt = "data/test1.txt"
+    aug_csv_list = [
         "data/processed/aug_pitch_up_10mfcc_mean.csv",
         "data/processed/aug_noise_10mfcc_mean.csv",
         "data/processed/aug_pitch_down_10mfcc_mean.csv",
         "data/processed/aug_speed_up_10mfcc_mean.csv"
-        ]
-    run_xgb_pipeline(real_paths, aug_paths)
+    ]
+    run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list, script_name)

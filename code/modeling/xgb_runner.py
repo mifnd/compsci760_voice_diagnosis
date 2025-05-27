@@ -1,3 +1,4 @@
+import os
 from itertools import product
 import numpy as np
 import pandas as pd
@@ -7,29 +8,31 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from sklearn.model_selection import GroupKFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import compute_class_weight
-from utils.train_test_split import train_test_split, cross_val_by_pnum, find_root_path
+from utils.train_test_split import train_test_split, find_root_path
 
 
-def run_xgb_pipeline(real_paths, aug_paths):
-    # Load the datasets into training and testing sets and split augmented data for training
-    train_real_list, test_real_list = [], []
-    for path in real_paths:
-        tr, te = train_test_split(path)
-        train_real_list.append(tr)
-        test_real_list.append(te)
-    train_aug_list = [train_test_split(p)[0] for p in aug_paths]
+def run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list=None, script_name=None):
+    train_df, test_df = train_test_split(
+        file_path=main_csv,
+        train_file=train_txt,
+        test_file=test_txt
+    )
 
-    # Combine the real and augmented training data
-    combined_train = pd.concat(train_real_list + train_aug_list)
-    combined_test = pd.concat(test_real_list)
+    if aug_csv_list:
+        for aug_csv in aug_csv_list:
+            aug_train, _ = train_test_split(
+                file_path=aug_csv,
+                train_file=train_txt,
+                test_file=test_txt
+            )
+            train_df = pd.concat([train_df, aug_train], ignore_index=True)
 
     # Make the label column categorical
     y_col = "disease_label"
-    X_cols = [c for c in combined_train.columns if c.startswith("mfcc_")]
-
+    X_cols = [c for c in train_df.columns if c.startswith("mfcc_")]
     le = LabelEncoder()
-    y_train_enc = le.fit_transform(combined_train[y_col])
-    y_test_enc = le.transform(combined_test[y_col])
+    y_train_enc = le.fit_transform(train_df[y_col])
+    y_test_enc = le.transform(test_df[y_col])
     n_classes = len(le.classes_)
 
     # Weights for each class
@@ -42,16 +45,17 @@ def run_xgb_pipeline(real_paths, aug_paths):
 
     # Hyperparameter tuning using GroupKFold
     # Hyperparameter grid
+    groups = train_df["patient_number"].values
     param_grid = {
-        "max_depth": [3, 5, 7, 9],
-        "learning_rate": [0.01, 0.05, 0.1, 0.2],
-        "n_estimators": [50, 100, 200, 300],
+        "max_depth": [5, 7, 9],
+        "learning_rate": [0.01, 0.05, 0.1],
+        "n_estimators": [100, 200, 300],
+        "subsample": [0.8, 1.0],
+        "colsample_bytree": [0.8, 1.0]
     }
-
-    groups = combined_train["patient_number"].values
     cv = GroupKFold(n_splits=5)
     best_score, best_params = grouped_hyperparam_search(
-        combined_train, y_train_enc, sample_weights,
+        train_df, y_train_enc, sample_weights,
         X_cols, n_classes, param_grid, groups, cv
     )
 
@@ -64,12 +68,11 @@ def run_xgb_pipeline(real_paths, aug_paths):
         **best_params
     )
     final_model.fit(
-        combined_train[X_cols], y_train_enc,
+        train_df[X_cols], y_train_enc,
         sample_weight=sample_weights
     )
 
-    y_proba = final_model.predict_proba(combined_test[X_cols])
-
+    y_proba = final_model.predict_proba(test_df[X_cols])
     best_thresholds = optimize_thresholds(y_test_enc, y_proba)
 
     y_pred_opt = []
@@ -81,6 +84,9 @@ def run_xgb_pipeline(real_paths, aug_paths):
             y_pred_opt.append(np.argmax(probs))
     y_pred_opt = np.array(y_pred_opt)
 
+    # Datetime now:
+    datatime_now = datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")
+
     # Evaluate the model
     print("\n=== Test Set Evaluation ===")
     print(f"Accuracy:           {accuracy_score(y_test_enc, y_pred_opt):.4f}")
@@ -89,24 +95,24 @@ def run_xgb_pipeline(real_paths, aug_paths):
     print(f"F1 Score (macro):   {f1_score(y_test_enc, y_pred_opt, average='macro'):.4f}")
     print(f"ROC AUC (ovr):      {roc_auc_score(y_test_enc, y_proba, multi_class='ovr'):.4f}")
 
-    # Record evaluation scores in text file
-    results_path = find_root_path()/"results"/f"results_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.txt"
+    results_path = find_root_path() / "results" / f"results_{script_name}_{datatime_now}.txt"
     results_txt = open(results_path, "w")
     results_txt.write("Accuracy,Precision(macro),Recall(macro),F1_Score(macro),ROC_AUC(ovr)\n")
     results_txt.write((f"{accuracy_score(y_test_enc, y_pred_opt)},"
-                      f"{precision_score(y_test_enc, y_pred_opt, average='macro')},"
-                      f"{recall_score(y_test_enc, y_pred_opt, average='macro')},"
-                      f"{f1_score(y_test_enc, y_pred_opt, average='macro')},"
-                      f"{roc_auc_score(y_test_enc, y_proba, multi_class='ovr')}"))
+                       f"{precision_score(y_test_enc, y_pred_opt, average='macro')},"
+                       f"{recall_score(y_test_enc, y_pred_opt, average='macro')},"
+                       f"{f1_score(y_test_enc, y_pred_opt, average='macro')},"
+                       f"{roc_auc_score(y_test_enc, y_proba, multi_class='ovr')}"))
     results_txt.close()
 
     # Record predictions in csv file
-    pd.DataFrame(data = {"id":combined_test.index, 
-                         "patient_number":combined_test["patient_number"],
-                         "disease_label":combined_test["disease_label"],
-                         "sound_type":combined_test["sound_type"],
-                         "y_real":y_test_enc,
-                         "y_pred":y_pred_opt}).to_csv(find_root_path()/"results"/f"results_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.csv", index = False)
+    pd.DataFrame(data={"id": test_df.index,
+                       "patient_number": test_df["patient_number"],
+                       "disease_label": test_df["disease_label"],
+                       "sound_type": test_df["sound_type"],
+                       "y_real": y_test_enc,
+                       "y_pred": y_pred_opt}).to_csv(
+        find_root_path() / "results" / f"predictions_{script_name}_{datatime_now}.csv", index=False)
 
 
 # Function to optimize thresholds for each class
@@ -167,12 +173,3 @@ def grouped_hyperparam_search(combined_train, y_train_enc, sample_weights, X_col
             best_score, best_params = mean_score, params
 
     return best_score, best_params
-
-
-# parser = argparse.ArgumentParser(description="XGBoost pipeline with multi-dataset training and patient-group CV")
-# parser.add_argument(
-#     "--datasets", nargs="+", required=True,
-#     help="List of dataset"
-# )
-# args = parser.parse_args()
-# run_xgb_pipeline(args.datasets)
