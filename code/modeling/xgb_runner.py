@@ -109,7 +109,7 @@ def run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list=None, script_na
                        "sound_type": test_df["sound_type"],
                        "y_real": y_test_enc,
                        "y_pred": y_pred_opt}).to_csv(
-        find_root_path() / "results" / f"results_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.csv", index=False)
+        find_root_path() / "results" / f"predictions_{script_name}_{datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")}.csv", index=False)
 
 
 # Function to optimize thresholds for each class
