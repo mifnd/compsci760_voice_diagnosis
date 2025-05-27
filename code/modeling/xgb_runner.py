@@ -48,13 +48,33 @@ def run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list=None, script_na
     # Hyperparameter tuning using GroupKFold
     # Hyperparameter grid
     groups = train_df["patient_number"].values
-    param_grid = {
-        "max_depth": [5, 7, 9],
-        "learning_rate": [0.01, 0.05, 0.1],
-        "n_estimators": [100, 200, 300],
-        "subsample": [0.8, 1.0],
-        "colsample_bytree": [0.8, 1.0]
+    feature_grid_dict = {
+        "10mfcc": {
+            "max_depth": [3, 5, 7],
+            "learning_rate": [0.05, 0.1],
+            "n_estimators": [100, 200],
+            "subsample": [0.8, 1.0],
+            "colsample_bytree": [0.8, 1.0],
+            "reg_alpha": [0, 0.1],
+            "reg_lambda": [0.1, 1],
+            "min_child_weight": [1]
+        },
+        "40mfcc": {
+            "max_depth": [5, 7, 9],
+            "learning_rate": [0.01, 0.05, 0.1],
+            "n_estimators": [100, 200, 300],
+            "subsample": [0.8, 1.0],
+            "colsample_bytree": [0.8, 1.0]
+        }
     }
+
+    if "10mfcc" in str(main_csv).lower():
+        param_grid = feature_grid_dict["10mfcc"]
+    elif "40mfcc" in str(main_csv).lower():
+        param_grid = feature_grid_dict["40mfcc"]
+    else:
+        param_grid = feature_grid_dict["10mfcc"]
+
     cv = GroupKFold(n_splits=5)
     best_score, best_params = grouped_hyperparam_search(
         train_df, y_train_enc, sample_weights,
