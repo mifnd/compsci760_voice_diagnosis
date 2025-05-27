@@ -23,7 +23,7 @@ def self_attentive_pooling(hidden_states):
 
 # Collect data
 data = []
-sound_types = ["Healthy", "Laryngocele", "Vox_senilis"]
+sound_types = ["Normal", "Laryngozele", "Vox_senilis"]
 
 for label in sound_types:
     label_dir = DATA_DIR / label
