@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import pandas as pd
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
@@ -13,7 +7,7 @@ from pathlib import Path
 # Base path
 root = Path("../..").resolve()
 FEATURE_FILE = root / "data/processed/hubert_self_attentive_features.csv"
-OUTPUT_IMAGE = BASE_DIR / "plots/data_exploration/HubertSA_tsne_visualization.png"
+OUTPUT_IMAGE = root / "plots/data_exploration/HubertSA_tsne_visualization.png"
 
 # Load features
 df = pd.read_csv(FEATURE_FILE)
@@ -46,10 +40,4 @@ plt.tight_layout()
 OUTPUT_IMAGE.parent.mkdir(parents=True, exist_ok=True)
 plt.savefig(OUTPUT_IMAGE, dpi=300)
 plt.show()
-
-
-# In[ ]:
-
-
-
 
