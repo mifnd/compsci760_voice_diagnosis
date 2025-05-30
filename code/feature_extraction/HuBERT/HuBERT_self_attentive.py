@@ -1,7 +1,6 @@
-from transformers import HubertModel, HubertConfig, Wav2Vec2FeatureExtractor
+from transformers import HubertModel, Wav2Vec2FeatureExtractor
 import torch
 import torchaudio
-import numpy as np
 import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
