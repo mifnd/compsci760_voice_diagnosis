@@ -9,4 +9,9 @@ dependencies:
   - scikit-learn=1.6.1
   - pysoundfile=0.13.1
   - libsndfile=1.2.2
-
+  - xgboost=2.1.4
+  - matplotlib
+  - seaborn
+  - pytorch
+  - torchaudio
+  - transformers
