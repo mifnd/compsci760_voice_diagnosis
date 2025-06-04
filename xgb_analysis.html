@@ -16,7 +16,7 @@
 <meta name="author" content="Fan Xiao (fxia111)" />
 <meta name="author" content="Ziheng Wang (zwan348)" />
 
-<meta name="date" content="2025-05-27" />
+<meta name="date" content="2025-06-04" />
 
 <title>XGB Pre-Processing Analysis</title>
 
@@ -362,7 +362,7 @@ display: none;
 <h4 class="author">JingShu Li (jil184)</h4>
 <h4 class="author">Fan Xiao (fxia111)</h4>
 <h4 class="author">Ziheng Wang (zwan348)</h4>
-<h4 class="date">2025-05-27</h4>
+<h4 class="date">2025-06-04</h4>
 
 </div>
 
@@ -383,87 +383,16 @@ using mean and median MFCC values and using 40 MFCC values opposed to
 </div>
 <div id="results" class="section level2">
 <h2>Results</h2>
-<pre class="r"><code># Find relevant files
-# results_dir to location of results folder
-# make sure to set working directory to source file location
-results_dir &lt;- &quot;./results&quot;
-score_files &lt;- list.files(results_dir, pattern = &quot;.txt&quot;)
-pred_files &lt;- list.files(results_dir, pattern = &quot;.csv&quot;)
-
-# Load score info to df
-scores.df &lt;- read.csv(paste(results_dir, score_files[1], sep = &quot;/&quot;))
-rownames(scores.df) &lt;- score_files[1]
-if (length(score_files) &gt; 1) {
-  for (i in 2:length(score_files)) {
-    temp.df &lt;- read.csv(paste(results_dir, score_files[i], sep = &quot;/&quot;))
-    rownames(temp.df) &lt;- score_files[i]
-    scores.df &lt;- rbind(scores.df, temp.df)
-  }
-  rm(temp.df)
-}
-
-# Load prediction results to df
-pred.df &lt;- read.csv(paste(results_dir, pred_files[1], sep = &quot;/&quot;))
-if (length(pred_files) &gt; 1) {
-  for (i in 2:length(pred_files)) {
-    temp.df &lt;- read.csv(paste(results_dir, pred_files[i], sep = &quot;/&quot;))[,c(&quot;id&quot;, &quot;y_pred&quot;)]
-    pred.df &lt;- merge(pred.df, temp.df, by = &quot;id&quot;, all = TRUE,
-                     suffixes = paste0(&quot;_&quot;, pred_files[(i-1):i]))
-  }
-  rm(temp.df)
-}
-
-# Results by experiment
-results_list &lt;- list()
-for (i in 1:length(pred_files)) {
-  # Confusion Matrix
-  cf &lt;- confusionMatrix(
-    factor(pred.df$y_real, levels = 0:2, labels = c(&quot;Laryngozele&quot;, &quot;Normal&quot;, &quot;Vox_senilis&quot;)),
-    factor(pred.df[,5 + i], levels = 0:2, labels = c(&quot;Laryngozele&quot;, &quot;Normal&quot;, &quot;Vox_senilis&quot;)))
-  # Breakdown by Sound
-  by_sound &lt;- pred.df |&gt; 
-    rename(temp = 5 + i) |&gt; 
-    group_by(sound_type) |&gt; 
-    summarise(percentage_correct = mean(y_real == temp) * 100) |&gt; 
-    ungroup()
-  # Breakdown by Patient
-  by_patient &lt;- pred.df |&gt; 
-    rename(temp = 5 + i) |&gt; 
-    group_by(patient_number, disease_label) |&gt; 
-    summarise(percentage_correct = mean(y_real == temp) * 100) |&gt; 
-    ungroup()
-  
-  results_list[[pred_files[i]]] &lt;- list(cf = cf, by_sound = by_sound, by_patient = by_patient)
-}</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;patient_number&#39;. You can override using
-## the `.groups` argument.
-## `summarise()` has grouped output by &#39;patient_number&#39;. You can override using
-## the `.groups` argument.
-## `summarise()` has grouped output by &#39;patient_number&#39;. You can override using
-## the `.groups` argument.
-## `summarise()` has grouped output by &#39;patient_number&#39;. You can override using
-## the `.groups` argument.
-## `summarise()` has grouped output by &#39;patient_number&#39;. You can override using
-## the `.groups` argument.
-## `summarise()` has grouped output by &#39;patient_number&#39;. You can override using
-## the `.groups` argument.
-## `summarise()` has grouped output by &#39;patient_number&#39;. You can override using
-## the `.groups` argument.
-## `summarise()` has grouped output by &#39;patient_number&#39;. You can override using
-## the `.groups` argument.
-## `summarise()` has grouped output by &#39;patient_number&#39;. You can override using
-## the `.groups` argument.</code></pre>
-<pre class="r"><code>rm(list = c(&quot;cf&quot;, &quot;by_sound&quot;, &quot;by_patient&quot;))</code></pre>
 <div id="general-results" class="section level3">
 <h3>General results</h3>
-<table style="width:100%;">
+<table>
 <colgroup>
-<col width="49%" />
-<col width="6%" />
+<col width="33%" />
+<col width="8%" />
+<col width="16%" />
+<col width="13%" />
+<col width="15%" />
 <col width="12%" />
-<col width="10%" />
-<col width="11%" />
-<col width="9%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -477,7 +406,7 @@ for (i in 1:length(pred_files)) {
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">results_xgb_10mfcc_mean_2025-05-27_22h19m32s.txt</td>
+<td align="left">xgb_10mfcc_mean</td>
 <td align="right">0.83</td>
 <td align="right">0.81</td>
 <td align="right">0.81</td>
@@ -485,63 +414,71 @@ for (i in 1:length(pred_files)) {
 <td align="right">0.92</td>
 </tr>
 <tr class="even">
-<td align="left">results_xgb_10mfcc_mean_aug_all_2025-05-27_22h27m07s.txt</td>
+<td align="left">xgb_10mfcc_mean1</td>
+<td align="right">0.79</td>
+<td align="right">0.76</td>
+<td align="right">0.75</td>
+<td align="right">0.76</td>
+<td align="right">0.91</td>
+</tr>
+<tr class="odd">
+<td align="left">xgb_10mfcc_mean_aug_all</td>
 <td align="right">0.76</td>
 <td align="right">0.74</td>
 <td align="right">0.68</td>
 <td align="right">0.68</td>
 <td align="right">0.87</td>
 </tr>
-<tr class="odd">
-<td align="left">results_xgb_10mfcc_mean_aug_noise_2025-05-27_22h33m35s.txt</td>
+<tr class="even">
+<td align="left">xgb_10mfcc_mean_aug_noise</td>
 <td align="right">0.77</td>
 <td align="right">0.74</td>
 <td align="right">0.74</td>
 <td align="right">0.74</td>
 <td align="right">0.91</td>
 </tr>
-<tr class="even">
-<td align="left">results_xgb_10mfcc_mean_aug_pitch_down_2025-05-27_22h36m55s.txt</td>
+<tr class="odd">
+<td align="left">xgb_10mfcc_mean_aug_pitch_down</td>
 <td align="right">0.77</td>
 <td align="right">0.76</td>
 <td align="right">0.70</td>
 <td align="right">0.71</td>
 <td align="right">0.91</td>
 </tr>
-<tr class="odd">
-<td align="left">results_xgb_10mfcc_mean_aug_pitch_up_2025-05-27_22h41m32s.txt</td>
+<tr class="even">
+<td align="left">xgb_10mfcc_mean_aug_pitch_up</td>
 <td align="right">0.79</td>
 <td align="right">0.78</td>
 <td align="right">0.73</td>
 <td align="right">0.74</td>
 <td align="right">0.91</td>
 </tr>
-<tr class="even">
-<td align="left">results_xgb_10mfcc_mean_aug_pitch_up_noise_2025-05-27_22h45m20s.txt</td>
+<tr class="odd">
+<td align="left">xgb_10mfcc_mean_aug_pitch_up_noise</td>
 <td align="right">0.79</td>
 <td align="right">0.79</td>
 <td align="right">0.70</td>
 <td align="right">0.70</td>
 <td align="right">0.90</td>
 </tr>
-<tr class="odd">
-<td align="left">results_xgb_10mfcc_mean_aug_speed_up_2025-05-27_22h49m22s.txt</td>
+<tr class="even">
+<td align="left">xgb_10mfcc_mean_aug_speed_up</td>
 <td align="right">0.77</td>
 <td align="right">0.73</td>
 <td align="right">0.71</td>
 <td align="right">0.72</td>
 <td align="right">0.88</td>
 </tr>
-<tr class="even">
-<td align="left">results_xgb_10mfcc_median_2025-05-27_23h18m32s.txt</td>
+<tr class="odd">
+<td align="left">xgb_10mfcc_median</td>
 <td align="right">0.81</td>
 <td align="right">0.81</td>
 <td align="right">0.77</td>
 <td align="right">0.78</td>
 <td align="right">0.91</td>
 </tr>
-<tr class="odd">
-<td align="left">results_xgb_40mfcc_mean_2025-05-27_22h59m46s.txt</td>
+<tr class="even">
+<td align="left">xgb_40mfcc_mean</td>
 <td align="right">0.66</td>
 <td align="right">0.45</td>
 <td align="right">0.55</td>
@@ -551,10 +488,332 @@ for (i in 1:length(pred_files)) {
 </tbody>
 </table>
 </div>
+<div id="breakdown-by-sound" class="section level3">
+<h3>Breakdown by Sound</h3>
+<table>
+<caption>Table shows the percentage of recordings correctly classified
+for each sound</caption>
+<colgroup>
+<col width="34%" />
+<col width="3%" />
+<col width="3%" />
+<col width="5%" />
+<col width="3%" />
+<col width="3%" />
+<col width="3%" />
+<col width="5%" />
+<col width="3%" />
+<col width="3%" />
+<col width="6%" />
+<col width="3%" />
+<col width="3%" />
+<col width="5%" />
+<col width="3%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">a_h</th>
+<th align="right">a_l</th>
+<th align="right">a_lhl</th>
+<th align="right">a_n</th>
+<th align="right">i_h</th>
+<th align="right">i_l</th>
+<th align="right">i_lhl</th>
+<th align="right">i_n</th>
+<th align="right">iau</th>
+<th align="right">phrase</th>
+<th align="right">u_h</th>
+<th align="right">u_l</th>
+<th align="right">u_lhl</th>
+<th align="right">u_n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">xgb_10mfcc_mean</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">60</td>
+<td align="right">40</td>
+<td align="right">80</td>
+<td align="right">60</td>
+</tr>
+<tr class="even">
+<td align="left">xgb_10mfcc_mean</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">40</td>
+<td align="right">80</td>
+<td align="right">60</td>
+</tr>
+<tr class="odd">
+<td align="left">xgb_10mfcc_mean_aug_all</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">100</td>
+<td align="right">60</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">60</td>
+<td align="right">60</td>
+<td align="right">60</td>
+<td align="right">80</td>
+</tr>
+<tr class="even">
+<td align="left">xgb_10mfcc_mean_aug_noise</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">40</td>
+<td align="right">60</td>
+<td align="right">60</td>
+<td align="right">60</td>
+</tr>
+<tr class="odd">
+<td align="left">xgb_10mfcc_mean_aug_pitch_down</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">20</td>
+<td align="right">80</td>
+<td align="right">80</td>
+</tr>
+<tr class="even">
+<td align="left">xgb_10mfcc_mean_aug_pitch_up</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">60</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">60</td>
+<td align="right">80</td>
+<td align="right">80</td>
+</tr>
+<tr class="odd">
+<td align="left">xgb_10mfcc_mean_aug_pitch_up_noise</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">40</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">80</td>
+</tr>
+<tr class="even">
+<td align="left">xgb_10mfcc_mean_aug_speed_up</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">40</td>
+<td align="right">80</td>
+<td align="right">60</td>
+</tr>
+<tr class="odd">
+<td align="left">xgb_10mfcc_median</td>
+<td align="right">60</td>
+<td align="right">60</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">80</td>
+<td align="right">100</td>
+<td align="right">60</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">80</td>
+</tr>
+<tr class="even">
+<td align="left">xgb_40mfcc_mean</td>
+<td align="right">60</td>
+<td align="right">40</td>
+<td align="right">60</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">80</td>
+<td align="right">40</td>
+<td align="right">80</td>
+<td align="right">60</td>
+<td align="right">80</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="breakdown-by-patient" class="section level3">
+<h3>Breakdown by Patient</h3>
+<table style="width:100%;">
+<caption>Table shows the percentage of sounds correctly classified for
+each patient.</caption>
+<colgroup>
+<col width="33%" />
+<col width="9%" />
+<col width="9%" />
+<col width="16%" />
+<col width="16%" />
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">11_Normal</th>
+<th align="right">68_Normal</th>
+<th align="right">1159_Vox_senilis</th>
+<th align="right">1981_Laryngozele</th>
+<th align="right">2097_Vox_senilis</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">xgb_10mfcc_mean</td>
+<td align="right">93</td>
+<td align="right">79</td>
+<td align="right">86</td>
+<td align="right">71</td>
+<td align="right">86</td>
+</tr>
+<tr class="even">
+<td align="left">xgb_10mfcc_mean</td>
+<td align="right">93</td>
+<td align="right">71</td>
+<td align="right">86</td>
+<td align="right">57</td>
+<td align="right">86</td>
+</tr>
+<tr class="odd">
+<td align="left">xgb_10mfcc_mean_aug_all</td>
+<td align="right">93</td>
+<td align="right">86</td>
+<td align="right">79</td>
+<td align="right">29</td>
+<td align="right">93</td>
+</tr>
+<tr class="even">
+<td align="left">xgb_10mfcc_mean_aug_noise</td>
+<td align="right">93</td>
+<td align="right">71</td>
+<td align="right">79</td>
+<td align="right">57</td>
+<td align="right">86</td>
+</tr>
+<tr class="odd">
+<td align="left">xgb_10mfcc_mean_aug_pitch_down</td>
+<td align="right">93</td>
+<td align="right">71</td>
+<td align="right">93</td>
+<td align="right">36</td>
+<td align="right">93</td>
+</tr>
+<tr class="even">
+<td align="left">xgb_10mfcc_mean_aug_pitch_up</td>
+<td align="right">93</td>
+<td align="right">86</td>
+<td align="right">86</td>
+<td align="right">43</td>
+<td align="right">86</td>
+</tr>
+<tr class="odd">
+<td align="left">xgb_10mfcc_mean_aug_pitch_up_noise</td>
+<td align="right">93</td>
+<td align="right">86</td>
+<td align="right">86</td>
+<td align="right">29</td>
+<td align="right">100</td>
+</tr>
+<tr class="even">
+<td align="left">xgb_10mfcc_mean_aug_speed_up</td>
+<td align="right">93</td>
+<td align="right">71</td>
+<td align="right">86</td>
+<td align="right">43</td>
+<td align="right">93</td>
+</tr>
+<tr class="odd">
+<td align="left">xgb_10mfcc_median</td>
+<td align="right">93</td>
+<td align="right">71</td>
+<td align="right">93</td>
+<td align="right">57</td>
+<td align="right">93</td>
+</tr>
+<tr class="even">
+<td align="left">xgb_40mfcc_mean</td>
+<td align="right">93</td>
+<td align="right">50</td>
+<td align="right">93</td>
+<td align="right">0</td>
+<td align="right">93</td>
+</tr>
+</tbody>
+</table>
+</div>
 <div id="results-by-experiment" class="section level3">
 <h3>Results by Experiment</h3>
-<div id="predictions_xgb_10mfcc_mean_2025-05-27_22h19m32s.csv" class="section level4">
-<h4>predictions_xgb_10mfcc_mean_2025-05-27_22h19m32s.csv</h4>
+<div id="xgb_10mfcc_mean" class="section level4">
+<h4>xgb_10mfcc_mean</h4>
 <table>
 <thead>
 <tr class="header">
@@ -585,111 +844,42 @@ for (i in 1:length(pred_files)) {
 </tr>
 </tbody>
 </table>
+</div>
+<div id="xgb_10mfcc_mean-1" class="section level4">
+<h4>xgb_10mfcc_mean</h4>
 <table>
 <thead>
 <tr class="header">
-<th align="left">sound_type</th>
-<th align="right">percentage_correct</th>
+<th align="left"></th>
+<th align="right">Laryngozele</th>
+<th align="right">Normal</th>
+<th align="right">Vox_senilis</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">a_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">a_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">a_lhl</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">a_n</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">i_h</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">i_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_lhl</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">i_n</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">iau</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">phrase</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">u_h</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">u_l</td>
-<td align="right">40</td>
-</tr>
-<tr class="odd">
-<td align="left">u_lhl</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">u_n</td>
-<td align="right">60</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr class="header">
-<th align="right">patient_number</th>
-<th align="left">disease_label</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">11</td>
-<td align="left">Normal</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">68</td>
-<td align="left">Normal</td>
-<td align="right">79</td>
-</tr>
-<tr class="odd">
-<td align="right">1159</td>
-<td align="left">Vox_senilis</td>
-<td align="right">86</td>
-</tr>
-<tr class="even">
-<td align="right">1981</td>
 <td align="left">Laryngozele</td>
-<td align="right">71</td>
+<td align="right">8</td>
+<td align="right">2</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">Normal</td>
+<td align="right">2</td>
+<td align="right">23</td>
+<td align="right">3</td>
 </tr>
 <tr class="odd">
-<td align="right">2097</td>
 <td align="left">Vox_senilis</td>
-<td align="right">86</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">24</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div id="predictions_xgb_10mfcc_mean_aug_all_2025-05-27_22h27m07s.csv" class="section level4">
-<h4>predictions_xgb_10mfcc_mean_aug_all_2025-05-27_22h27m07s.csv</h4>
+<div id="xgb_10mfcc_mean_aug_all" class="section level4">
+<h4>xgb_10mfcc_mean_aug_all</h4>
 <table>
 <thead>
 <tr class="header">
@@ -720,111 +910,9 @@ for (i in 1:length(pred_files)) {
 </tr>
 </tbody>
 </table>
-<table>
-<thead>
-<tr class="header">
-<th align="left">sound_type</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">a_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">a_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">a_lhl</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">a_n</td>
-<td align="right">60</td>
-</tr>
-<tr class="odd">
-<td align="left">i_h</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">i_l</td>
-<td align="right">60</td>
-</tr>
-<tr class="odd">
-<td align="left">i_lhl</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">i_n</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">iau</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">phrase</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">u_h</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">u_l</td>
-<td align="right">60</td>
-</tr>
-<tr class="odd">
-<td align="left">u_lhl</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">u_n</td>
-<td align="right">80</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr class="header">
-<th align="right">patient_number</th>
-<th align="left">disease_label</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">11</td>
-<td align="left">Normal</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">68</td>
-<td align="left">Normal</td>
-<td align="right">86</td>
-</tr>
-<tr class="odd">
-<td align="right">1159</td>
-<td align="left">Vox_senilis</td>
-<td align="right">79</td>
-</tr>
-<tr class="even">
-<td align="right">1981</td>
-<td align="left">Laryngozele</td>
-<td align="right">29</td>
-</tr>
-<tr class="odd">
-<td align="right">2097</td>
-<td align="left">Vox_senilis</td>
-<td align="right">93</td>
-</tr>
-</tbody>
-</table>
 </div>
-<div id="predictions_xgb_10mfcc_mean_aug_noise_2025-05-27_22h33m35s.csv" class="section level4">
-<h4>predictions_xgb_10mfcc_mean_aug_noise_2025-05-27_22h33m35s.csv</h4>
+<div id="xgb_10mfcc_mean_aug_noise" class="section level4">
+<h4>xgb_10mfcc_mean_aug_noise</h4>
 <table>
 <thead>
 <tr class="header">
@@ -855,111 +943,9 @@ for (i in 1:length(pred_files)) {
 </tr>
 </tbody>
 </table>
-<table>
-<thead>
-<tr class="header">
-<th align="left">sound_type</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">a_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">a_l</td>
-<td align="right">60</td>
-</tr>
-<tr class="odd">
-<td align="left">a_lhl</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">a_n</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">i_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_lhl</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">i_n</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">iau</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">phrase</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">u_h</td>
-<td align="right">40</td>
-</tr>
-<tr class="even">
-<td align="left">u_l</td>
-<td align="right">60</td>
-</tr>
-<tr class="odd">
-<td align="left">u_lhl</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">u_n</td>
-<td align="right">60</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr class="header">
-<th align="right">patient_number</th>
-<th align="left">disease_label</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">11</td>
-<td align="left">Normal</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">68</td>
-<td align="left">Normal</td>
-<td align="right">71</td>
-</tr>
-<tr class="odd">
-<td align="right">1159</td>
-<td align="left">Vox_senilis</td>
-<td align="right">79</td>
-</tr>
-<tr class="even">
-<td align="right">1981</td>
-<td align="left">Laryngozele</td>
-<td align="right">57</td>
-</tr>
-<tr class="odd">
-<td align="right">2097</td>
-<td align="left">Vox_senilis</td>
-<td align="right">86</td>
-</tr>
-</tbody>
-</table>
 </div>
-<div id="predictions_xgb_10mfcc_mean_aug_pitch_down_2025-05-27_22h36m55s.csv" class="section level4">
-<h4>predictions_xgb_10mfcc_mean_aug_pitch_down_2025-05-27_22h36m55s.csv</h4>
+<div id="xgb_10mfcc_mean_aug_pitch_down" class="section level4">
+<h4>xgb_10mfcc_mean_aug_pitch_down</h4>
 <table>
 <thead>
 <tr class="header">
@@ -990,111 +976,9 @@ for (i in 1:length(pred_files)) {
 </tr>
 </tbody>
 </table>
-<table>
-<thead>
-<tr class="header">
-<th align="left">sound_type</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">a_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">a_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">a_lhl</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">a_n</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">i_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_lhl</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">i_n</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">iau</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">phrase</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">u_h</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">u_l</td>
-<td align="right">20</td>
-</tr>
-<tr class="odd">
-<td align="left">u_lhl</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">u_n</td>
-<td align="right">80</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr class="header">
-<th align="right">patient_number</th>
-<th align="left">disease_label</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">11</td>
-<td align="left">Normal</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">68</td>
-<td align="left">Normal</td>
-<td align="right">71</td>
-</tr>
-<tr class="odd">
-<td align="right">1159</td>
-<td align="left">Vox_senilis</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">1981</td>
-<td align="left">Laryngozele</td>
-<td align="right">36</td>
-</tr>
-<tr class="odd">
-<td align="right">2097</td>
-<td align="left">Vox_senilis</td>
-<td align="right">93</td>
-</tr>
-</tbody>
-</table>
 </div>
-<div id="predictions_xgb_10mfcc_mean_aug_pitch_up_2025-05-27_22h41m32s.csv" class="section level4">
-<h4>predictions_xgb_10mfcc_mean_aug_pitch_up_2025-05-27_22h41m32s.csv</h4>
+<div id="xgb_10mfcc_mean_aug_pitch_up" class="section level4">
+<h4>xgb_10mfcc_mean_aug_pitch_up</h4>
 <table>
 <thead>
 <tr class="header">
@@ -1125,111 +1009,9 @@ for (i in 1:length(pred_files)) {
 </tr>
 </tbody>
 </table>
-<table>
-<thead>
-<tr class="header">
-<th align="left">sound_type</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">a_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">a_l</td>
-<td align="right">60</td>
-</tr>
-<tr class="odd">
-<td align="left">a_lhl</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">a_n</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_h</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">i_l</td>
-<td align="right">60</td>
-</tr>
-<tr class="odd">
-<td align="left">i_lhl</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">i_n</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">iau</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">phrase</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">u_h</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">u_l</td>
-<td align="right">60</td>
-</tr>
-<tr class="odd">
-<td align="left">u_lhl</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">u_n</td>
-<td align="right">80</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr class="header">
-<th align="right">patient_number</th>
-<th align="left">disease_label</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">11</td>
-<td align="left">Normal</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">68</td>
-<td align="left">Normal</td>
-<td align="right">86</td>
-</tr>
-<tr class="odd">
-<td align="right">1159</td>
-<td align="left">Vox_senilis</td>
-<td align="right">86</td>
-</tr>
-<tr class="even">
-<td align="right">1981</td>
-<td align="left">Laryngozele</td>
-<td align="right">43</td>
-</tr>
-<tr class="odd">
-<td align="right">2097</td>
-<td align="left">Vox_senilis</td>
-<td align="right">86</td>
-</tr>
-</tbody>
-</table>
 </div>
-<div id="predictions_xgb_10mfcc_mean_aug_pitch_up_noise_2025-05-27_22h45m20s.csv" class="section level4">
-<h4>predictions_xgb_10mfcc_mean_aug_pitch_up_noise_2025-05-27_22h45m20s.csv</h4>
+<div id="xgb_10mfcc_mean_aug_pitch_up_noise" class="section level4">
+<h4>xgb_10mfcc_mean_aug_pitch_up_noise</h4>
 <table>
 <thead>
 <tr class="header">
@@ -1260,111 +1042,9 @@ for (i in 1:length(pred_files)) {
 </tr>
 </tbody>
 </table>
-<table>
-<thead>
-<tr class="header">
-<th align="left">sound_type</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">a_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">a_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">a_lhl</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">a_n</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">i_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_lhl</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">i_n</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">iau</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">phrase</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">u_h</td>
-<td align="right">40</td>
-</tr>
-<tr class="even">
-<td align="left">u_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">u_lhl</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">u_n</td>
-<td align="right">80</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr class="header">
-<th align="right">patient_number</th>
-<th align="left">disease_label</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">11</td>
-<td align="left">Normal</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">68</td>
-<td align="left">Normal</td>
-<td align="right">86</td>
-</tr>
-<tr class="odd">
-<td align="right">1159</td>
-<td align="left">Vox_senilis</td>
-<td align="right">86</td>
-</tr>
-<tr class="even">
-<td align="right">1981</td>
-<td align="left">Laryngozele</td>
-<td align="right">29</td>
-</tr>
-<tr class="odd">
-<td align="right">2097</td>
-<td align="left">Vox_senilis</td>
-<td align="right">100</td>
-</tr>
-</tbody>
-</table>
 </div>
-<div id="predictions_xgb_10mfcc_mean_aug_speed_up_2025-05-27_22h49m22s.csv" class="section level4">
-<h4>predictions_xgb_10mfcc_mean_aug_speed_up_2025-05-27_22h49m22s.csv</h4>
+<div id="xgb_10mfcc_mean_aug_speed_up" class="section level4">
+<h4>xgb_10mfcc_mean_aug_speed_up</h4>
 <table>
 <thead>
 <tr class="header">
@@ -1395,111 +1075,9 @@ for (i in 1:length(pred_files)) {
 </tr>
 </tbody>
 </table>
-<table>
-<thead>
-<tr class="header">
-<th align="left">sound_type</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">a_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">a_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">a_lhl</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">a_n</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">i_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_lhl</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">i_n</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">iau</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">phrase</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">u_h</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">u_l</td>
-<td align="right">40</td>
-</tr>
-<tr class="odd">
-<td align="left">u_lhl</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">u_n</td>
-<td align="right">60</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr class="header">
-<th align="right">patient_number</th>
-<th align="left">disease_label</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">11</td>
-<td align="left">Normal</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">68</td>
-<td align="left">Normal</td>
-<td align="right">71</td>
-</tr>
-<tr class="odd">
-<td align="right">1159</td>
-<td align="left">Vox_senilis</td>
-<td align="right">86</td>
-</tr>
-<tr class="even">
-<td align="right">1981</td>
-<td align="left">Laryngozele</td>
-<td align="right">43</td>
-</tr>
-<tr class="odd">
-<td align="right">2097</td>
-<td align="left">Vox_senilis</td>
-<td align="right">93</td>
-</tr>
-</tbody>
-</table>
 </div>
-<div id="predictions_xgb_10mfcc_median_2025-05-27_23h18m32s.csv" class="section level4">
-<h4>predictions_xgb_10mfcc_median_2025-05-27_23h18m32s.csv</h4>
+<div id="xgb_10mfcc_median" class="section level4">
+<h4>xgb_10mfcc_median</h4>
 <table>
 <thead>
 <tr class="header">
@@ -1530,111 +1108,9 @@ for (i in 1:length(pred_files)) {
 </tr>
 </tbody>
 </table>
-<table>
-<thead>
-<tr class="header">
-<th align="left">sound_type</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">a_h</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">a_l</td>
-<td align="right">60</td>
-</tr>
-<tr class="odd">
-<td align="left">a_lhl</td>
-<td align="right">100</td>
-</tr>
-<tr class="even">
-<td align="left">a_n</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">i_h</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">i_l</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">i_lhl</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">i_n</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">iau</td>
-<td align="right">80</td>
-</tr>
-<tr class="even">
-<td align="left">phrase</td>
-<td align="right">100</td>
-</tr>
-<tr class="odd">
-<td align="left">u_h</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">u_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">u_lhl</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">u_n</td>
-<td align="right">80</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr class="header">
-<th align="right">patient_number</th>
-<th align="left">disease_label</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">11</td>
-<td align="left">Normal</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">68</td>
-<td align="left">Normal</td>
-<td align="right">71</td>
-</tr>
-<tr class="odd">
-<td align="right">1159</td>
-<td align="left">Vox_senilis</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">1981</td>
-<td align="left">Laryngozele</td>
-<td align="right">57</td>
-</tr>
-<tr class="odd">
-<td align="right">2097</td>
-<td align="left">Vox_senilis</td>
-<td align="right">93</td>
-</tr>
-</tbody>
-</table>
 </div>
-<div id="predictions_xgb_40mfcc_mean_2025-05-27_22h59m46s.csv" class="section level4">
-<h4>predictions_xgb_40mfcc_mean_2025-05-27_22h59m46s.csv</h4>
+<div id="xgb_40mfcc_mean" class="section level4">
+<h4>xgb_40mfcc_mean</h4>
 <table>
 <thead>
 <tr class="header">
@@ -1662,108 +1138,6 @@ for (i in 1:length(pred_files)) {
 <td align="right">0</td>
 <td align="right">2</td>
 <td align="right">26</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr class="header">
-<th align="left">sound_type</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">a_h</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">a_l</td>
-<td align="right">40</td>
-</tr>
-<tr class="odd">
-<td align="left">a_lhl</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">a_n</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_h</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">i_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">i_lhl</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">i_n</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">iau</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">phrase</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">u_h</td>
-<td align="right">40</td>
-</tr>
-<tr class="even">
-<td align="left">u_l</td>
-<td align="right">80</td>
-</tr>
-<tr class="odd">
-<td align="left">u_lhl</td>
-<td align="right">60</td>
-</tr>
-<tr class="even">
-<td align="left">u_n</td>
-<td align="right">80</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr class="header">
-<th align="right">patient_number</th>
-<th align="left">disease_label</th>
-<th align="right">percentage_correct</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">11</td>
-<td align="left">Normal</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">68</td>
-<td align="left">Normal</td>
-<td align="right">50</td>
-</tr>
-<tr class="odd">
-<td align="right">1159</td>
-<td align="left">Vox_senilis</td>
-<td align="right">93</td>
-</tr>
-<tr class="even">
-<td align="right">1981</td>
-<td align="left">Laryngozele</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="right">2097</td>
-<td align="left">Vox_senilis</td>
-<td align="right">93</td>
 </tr>
 </tbody>
 </table>
