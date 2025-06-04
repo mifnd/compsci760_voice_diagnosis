@@ -9,10 +9,10 @@ id,patient_number,disease_label,sound_type,y_real,y_pred
 101,1159,Vox_senilis,i_n,2,2
 106,2097,Vox_senilis,u_h,2,2
 107,1159,Vox_senilis,phrase,2,2
-115,1159,Vox_senilis,i_l,2,1
+115,1159,Vox_senilis,i_l,2,0
 123,1159,Vox_senilis,i_h,2,2
 132,2097,Vox_senilis,u_n,2,2
-135,2097,Vox_senilis,u_l,2,1
+135,2097,Vox_senilis,u_l,2,2
 142,2097,Vox_senilis,iau,2,2
 151,2097,Vox_senilis,i_l,2,2
 153,1159,Vox_senilis,a_lhl,2,2
@@ -35,10 +35,10 @@ id,patient_number,disease_label,sound_type,y_real,y_pred
 212,1981,Laryngozele,u_n,0,1
 219,1981,Laryngozele,u_h,0,0
 221,1981,Laryngozele,a_lhl,0,0
-225,1981,Laryngozele,i_lhl,0,1
-226,1981,Laryngozele,phrase,0,2
+225,1981,Laryngozele,i_lhl,0,0
+226,1981,Laryngozele,phrase,0,0
 228,1981,Laryngozele,u_lhl,0,0
-231,1981,Laryngozele,a_h,0,2
+231,1981,Laryngozele,a_h,0,1
 234,1981,Laryngozele,a_n,0,1
 236,1981,Laryngozele,a_l,0,1
 244,68,Normal,phrase,1,1

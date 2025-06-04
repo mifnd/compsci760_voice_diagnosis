@@ -12,7 +12,7 @@ id,patient_number,disease_label,sound_type,y_real,y_pred
 115,1159,Vox_senilis,i_l,2,0
 123,1159,Vox_senilis,i_h,2,2
 132,2097,Vox_senilis,u_n,2,2
-135,2097,Vox_senilis,u_l,2,0
+135,2097,Vox_senilis,u_l,2,1
 142,2097,Vox_senilis,iau,2,2
 151,2097,Vox_senilis,i_l,2,2
 153,1159,Vox_senilis,a_lhl,2,2
@@ -35,7 +35,7 @@ id,patient_number,disease_label,sound_type,y_real,y_pred
 212,1981,Laryngozele,u_n,0,1
 219,1981,Laryngozele,u_h,0,0
 221,1981,Laryngozele,a_lhl,0,0
-225,1981,Laryngozele,i_lhl,0,1
+225,1981,Laryngozele,i_lhl,0,0
 226,1981,Laryngozele,phrase,0,2
 228,1981,Laryngozele,u_lhl,0,0
 231,1981,Laryngozele,a_h,0,1
@@ -52,11 +52,11 @@ id,patient_number,disease_label,sound_type,y_real,y_pred
 282,68,Normal,i_n,1,1
 284,11,Normal,u_n,1,1
 285,68,Normal,u_lhl,1,2
-301,68,Normal,u_n,1,0
+301,68,Normal,u_n,1,1
 307,11,Normal,i_n,1,1
 308,11,Normal,i_l,1,1
 311,68,Normal,iau,1,1
-313,68,Normal,u_l,1,1
+313,68,Normal,u_l,1,0
 337,68,Normal,u_h,1,2
 340,11,Normal,i_h,1,1
 352,11,Normal,phrase,1,1

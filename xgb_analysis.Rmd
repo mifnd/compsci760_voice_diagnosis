@@ -37,15 +37,16 @@ pred_files <- list.files(results_dir, pattern = ".csv")
 
 # Load score info to df
 scores.df <- read.csv(paste(results_dir, score_files[1], sep = "/"))
-rownames(scores.df) <- sapply(strsplit(score_files[1], "_"), function(x) paste(x[2:(length(x)-2)], collapse = "_"))
+rownames(scores.df) <- sapply(strsplit(score_files[1], "_"), function(x) paste(x[2:(length(x)-2)], collapse = " "))
 if (length(score_files) > 1) {
   for (i in 2:length(score_files)) {
     temp.df <- read.csv(paste(results_dir, score_files[i], sep = "/"))
-    rownames(temp.df) <- sapply(strsplit(score_files[i], "_"), function(x) paste(x[2:(length(x)-2)], collapse = "_"))
+    rownames(temp.df) <- sapply(strsplit(score_files[i], "_"), function(x) paste(x[2:(length(x)-2)], collapse = " "))
     scores.df <- rbind(scores.df, temp.df)
   }
   rm(temp.df)
 }
+colnames(scores.df) <- gsub("\\.", " ", colnames(scores.df))
 
 # Load prediction results to df
 pred.df <- read.csv(paste(results_dir, pred_files[1], sep = "/"))
@@ -86,7 +87,7 @@ rm(list = c("cf", "by_sound", "by_patient"))
 
 ### General results
 
-``` {r, echo = FALSE, results='asis'}
+``` {r, echo = FALSE}
 knitr::kable(scores.df, digits = 2)
 ```
 
@@ -96,8 +97,9 @@ knitr::kable(scores.df, digits = 2)
 # Combine all sound results
 results_sound <- data.frame(lapply(results_list, function(x) x$by_sound$percentage_correct),
                             row.names = results_list[[1]]$by_sound$sound_type)
-colnames(results_sound) <- sapply(strsplit(colnames(results_sound), "_"), function(x) paste(x[2:(length(x)-2)], collapse = "_"))
+colnames(results_sound) <- sapply(strsplit(colnames(results_sound), "_"), function(x) paste(x[2:(length(x)-2)], collapse = " "))
 results_sound <- t(results_sound)
+rownames(results_sound) <- gsub("_", " ", rownames(results_sound))
 
 # Show sound table
 knitr::kable(results_sound, digits = 0,
@@ -113,8 +115,9 @@ results_patient <- data.frame(lapply(results_list, function(x) x$by_patient$perc
                             row.names = paste(results_list[[1]]$by_patient$patient_number,
                             results_list[[1]]$by_patient$disease_label, sep = "_"))
 colnames(results_patient) <- sapply(strsplit(colnames(results_patient), "_"), 
-                                    function(x) paste(x[2:(length(x)-2)], collapse = "_"))
+                                    function(x) paste(x[2:(length(x)-2)], collapse = " "))
 results_patient <- t(results_patient)
+rownames(results_patient) <- gsub("_", " ", rownames(results_patient))
 
 # Show sound table
 knitr::kable(results_patient, digits = 0,
@@ -125,7 +128,7 @@ knitr::kable(results_patient, digits = 0,
 ```{r, echo = FALSE, results='asis'}
 for (i in 1:length(results_list)) {
   cat(paste0("#### ", 
-             sapply(strsplit(pred_files[i], "_"), function(x) paste(x[2:(length(x)-2)], collapse = "_")), 
+             sapply(strsplit(pred_files[i], "_"), function(x) paste(x[2:(length(x)-2)], collapse = " ")), 
              "\n"))
   print(knitr::kable(results_list[[i]]$cf$table))
   cat("\n")
