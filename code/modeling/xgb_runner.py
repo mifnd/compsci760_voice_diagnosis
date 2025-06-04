@@ -47,11 +47,9 @@ def run_xgb_pipeline(main_csv, train_txt, test_txt, aug_csv_list=None, script_na
     # Hyperparameter grid
     groups = train_df["patient_number"].values
     param_grid = {
-        "max_depth": [5, 7, 9],
-        "learning_rate": [0.01, 0.05, 0.1],
-        "n_estimators": [100, 200, 300],
-        "subsample": [0.8, 1.0],
-        "colsample_bytree": [0.8, 1.0]
+        "max_depth": [3, 5, 7, 9],
+        "learning_rate": [0.01, 0.05, 0.1, 0.2],
+        "n_estimators": [50, 100, 200, 300],
     }
     cv = GroupKFold(n_splits=5)
     best_score, best_params = grouped_hyperparam_search(

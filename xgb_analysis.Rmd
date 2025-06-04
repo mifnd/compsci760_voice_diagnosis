@@ -1,0 +1,140 @@
+---
+title: "XGB Pre-Processing Analysis"
+author:
+- Mikkel Frøland (mfro089)
+- Stefan Walles (swal435)
+- Yuxiao Wang (wany441)
+- JingShu Li (jil184)
+- Fan Xiao (fxia111)
+- Ziheng Wang (zwan348)
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+library(dplyr)
+library(caret)
+```
+
+---
+
+## Introduction
+
+Throughout working on our project one of our biggest obstacles to overcome was our lack of data. Our dataset contained sounds from only around 30 different patients and the smallest group only had 3 different patients. We used 4 different audio data augmentation methods to try to combat these issues. The techniques were: pitch up, pitch down, speed up, and adding noise.
+
+We decided to use baseline XG-Boost models to evaluate the different augmentation methods as well as run some other experiments including: using mean and median MFCC values and using 40 MFCC values opposed to 10.
+
+## Results
+``` {r, warning = FALSE}
+# Find relevant files
+# results_dir to location of results folder
+# make sure to set working directory to source file location
+results_dir <- "./results"
+score_files <- list.files(results_dir, pattern = ".txt")
+pred_files <- list.files(results_dir, pattern = ".csv")
+
+# Load score info to df
+scores.df <- read.csv(paste(results_dir, score_files[1], sep = "/"))
+rownames(scores.df) <- sapply(strsplit(score_files[1], "_"), function(x) paste(x[2:(length(x)-2)], collapse = " "))
+if (length(score_files) > 1) {
+  for (i in 2:length(score_files)) {
+    temp.df <- read.csv(paste(results_dir, score_files[i], sep = "/"))
+    rownames(temp.df) <- sapply(strsplit(score_files[i], "_"), function(x) paste(x[2:(length(x)-2)], collapse = " "))
+    scores.df <- rbind(scores.df, temp.df)
+  }
+  rm(temp.df)
+}
+colnames(scores.df) <- gsub("\\.", " ", colnames(scores.df))
+
+# Load prediction results to df
+pred.df <- read.csv(paste(results_dir, pred_files[1], sep = "/"))
+if (length(pred_files) > 1) {
+  for (i in 2:length(pred_files)) {
+    temp.df <- read.csv(paste(results_dir, pred_files[i], sep = "/"))[,c("id", "y_pred")]
+    pred.df <- merge(pred.df, temp.df, by = "id", all = TRUE,
+                     suffixes = paste0("_", pred_files[(i-1):i]))
+  }
+  rm(temp.df)
+}
+
+# Results by experiment
+results_list <- list()
+for (i in 1:length(pred_files)) {
+  # Confusion Matrix
+  cf <- confusionMatrix(
+    factor(pred.df$y_real, levels = 0:2, labels = c("Laryngozele", "Normal", "Vox_senilis")),
+    factor(pred.df[,5 + i], levels = 0:2, labels = c("Laryngozele", "Normal", "Vox_senilis")))
+  # Breakdown by Sound
+  by_sound <- pred.df |> 
+    rename(temp = 5 + i) |> 
+    group_by(sound_type) |> 
+    summarise(percentage_correct = mean(y_real == temp) * 100) |> 
+    ungroup()
+  # Breakdown by Patient
+  by_patient <- pred.df |> 
+    rename(temp = 5 + i) |> 
+    group_by(patient_number, disease_label) |> 
+    summarise(percentage_correct = mean(y_real == temp) * 100) |> 
+    ungroup()
+  
+  results_list[[pred_files[i]]] <- list(cf = cf, by_sound = by_sound, by_patient = by_patient)
+}
+rm(list = c("cf", "by_sound", "by_patient"))
+
+```
+
+### General results
+
+``` {r, echo = FALSE}
+knitr::kable(scores.df, digits = 2)
+```
+
+### Breakdown by Sound
+
+```{r}
+# Combine all sound results
+results_sound <- data.frame(lapply(results_list, function(x) x$by_sound$percentage_correct),
+                            row.names = results_list[[1]]$by_sound$sound_type)
+colnames(results_sound) <- sapply(strsplit(colnames(results_sound), "_"), function(x) paste(x[2:(length(x)-2)], collapse = " "))
+results_sound <- t(results_sound)
+rownames(results_sound) <- gsub("_", " ", rownames(results_sound))
+
+# Show sound table
+knitr::kable(results_sound, digits = 0,
+             caption = "Table shows the percentage of recordings correctly classified for each sound")
+```
+
+
+### Breakdown by Patient
+
+```{r}
+# Combine all patient results
+results_patient <- data.frame(lapply(results_list, function(x) x$by_patient$percentage_correct),
+                            row.names = paste(results_list[[1]]$by_patient$patient_number,
+                            results_list[[1]]$by_patient$disease_label, sep = "_"))
+colnames(results_patient) <- sapply(strsplit(colnames(results_patient), "_"), 
+                                    function(x) paste(x[2:(length(x)-2)], collapse = " "))
+results_patient <- t(results_patient)
+rownames(results_patient) <- gsub("_", " ", rownames(results_patient))
+
+# Show sound table
+knitr::kable(results_patient, digits = 0,
+             caption = "Table shows the percentage of sounds correctly classified for each patient.")
+```
+
+### Results by Experiment
+```{r, echo = FALSE, results='asis'}
+for (i in 1:length(results_list)) {
+  cat(paste0("#### ", 
+             sapply(strsplit(pred_files[i], "_"), function(x) paste(x[2:(length(x)-2)], collapse = " ")), 
+             "\n"))
+  print(knitr::kable(results_list[[i]]$cf$table))
+  cat("\n")
+}
+
+```
+
+---
+
