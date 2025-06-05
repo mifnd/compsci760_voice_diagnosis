@@ -15,3 +15,4 @@ dependencies:
   - pytorch
   - torchaudio
   - transformers
+  - tensorflow=2.18.1
